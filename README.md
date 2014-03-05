@@ -1,3 +1,13 @@
+WebSockets
+=================
+This branch gives a very rudimentary WebSocket support.
+The credit for the WebSocket implementation goes to Nathan Schwermann at https://github.com/schwiz
+I gave credit in the NOTICE file, if there is an issue please write me.
+
+Missing features
+-----------------
+1. Registration with the TS server
+
 TextSecure
 =================
 
