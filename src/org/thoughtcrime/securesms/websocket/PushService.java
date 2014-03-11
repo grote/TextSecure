@@ -1,7 +1,9 @@
 package org.thoughtcrime.securesms.websocket;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 
 import com.codebutler.android_websockets.WebSocketClient;
 import com.codebutler.android_websockets.WebSocketClient.Listener;
@@ -80,14 +82,19 @@ public class PushService extends Service implements Listener {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		WakeLock wakelock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+		WakeLock wakelock = ((PowerManager)getSystemService(POWER_SERVICE))
+                            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 		wakelock.acquire();
 		Log.i(TAG, "PushService start command");
 		if(intent != null) Log.i(TAG, intent.toUri(0));
 		mShutDown = false;
-		if(mClient == null) {
-			WakeLock clientlock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-			mClient = new WebSocketClient(URI.create(Release.WS_URL), this, null, clientlock);
+        if(mClient == null) {
+			WakeLock clientlock = ((PowerManager)getSystemService(POWER_SERVICE))
+                                   .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+			mClient = new WebSocketClient(URI.create(Release.WS_URL+"?user="
+                            +TextSecurePreferences.getLocalNumber(getApplication())+
+                            "&password="+TextSecurePreferences.getPushServerPassword(
+                            getApplication())), this, null, clientlock);
 		}
 		
 		if(!mClient.isConnected()) mClient.connect();

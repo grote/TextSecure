@@ -67,7 +67,7 @@ public class RegistrationService extends Service {
   public static final String CHALLENGE_EXTRA        = "CAAChallenge";
   public static final String GCM_REGISTRATION_ID    = "GCMRegistrationId";
 
-  private static final long REGISTRATION_TIMEOUT_MILLIS = 120000;
+  private static final long REGISTRATION_TIMEOUT_MILLIS = 2000;
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Binder          binder   = new RegistrationServiceBinder();
@@ -266,11 +266,19 @@ public class RegistrationService extends Service {
     PreKeyRecord       lastResort  = PreKeyUtil.generateLastResortKey(this, masterSecret);
     socket.registerPreKeys(identityKey, lastResort, records);
 
-    setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
-    GCMRegistrar.register(this, GcmIntentService.GCM_SENDER_ID);
-    String gcmRegistrationId = waitForGcmRegistrationId();
-    socket.registerGcmId(gcmRegistrationId);
-
+    //TODO This has to be caught. Perfom GCM check here
+    /*try {
+        GCMRegistrar.checkDevice(this);
+       setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
+        GCMRegistrar.register(this, GcmIntentService.GCM_SENDER_ID);
+        String gcmRegistrationId = waitForGcmRegistrationId();
+        socket.registerGcmId(gcmRegistrationId);
+    } catch (UnsupportedOperationException uoe) {
+       // Dialogs.showAlertDialog(this, getString(R.string.RegistrationActivity_unsupported),
+        //        getString(R.string.RegistrationActivity_sorry_this_device_is_not_supported_for_data_messaging));
+       // return; //TODO Fix me: this device can do WebSocket!
+    }
+*/
     DirectoryHelper.refreshDirectory(this, socket, number);
 
     DirectoryRefreshListener.schedule(this);

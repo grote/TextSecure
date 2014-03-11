@@ -93,7 +93,7 @@ public class WebSocketClient {
 
 					String path = TextUtils.isEmpty(mURI.getPath()) ? "/" : mURI.getPath();
 					if (!TextUtils.isEmpty(mURI.getQuery())) {
-						path += "?" + mURI.getQuery();
+						path += "?" + mURI.getQuery().replaceAll("\\+","%2B");
 					}
 
 					String originScheme = mURI.getScheme().equals("wss") ? "https" : "http";

@@ -178,14 +178,6 @@ public class RegistrationActivity extends SherlockActivity {
         return;
       }
 
-      try {
-        GCMRegistrar.checkDevice(self);
-      } catch (UnsupportedOperationException uoe) {
-        Dialogs.showAlertDialog(self, getString(R.string.RegistrationActivity_unsupported),
-                             getString(R.string.RegistrationActivity_sorry_this_device_is_not_supported_for_data_messaging));
-        return;
-      }
-
       AlertDialog.Builder dialog = new AlertDialog.Builder(self);
       dialog.setMessage(String.format(getString(R.string.RegistrationActivity_we_will_now_verify_that_the_following_number_is_associated_with_your_device_s),
                                       PhoneNumberFormatter.getInternationalFormatFromE164(e164number)));
