@@ -7,6 +7,7 @@ import java.net.URL;
 
 import com.codebutler.android_websockets.WebSocketClient;
 import com.codebutler.android_websockets.WebSocketClient.Listener;
+import com.google.thoughtcrimegson.Gson;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -33,11 +34,12 @@ import org.whispersystems.textsecure.util.Util;
 public class PushService extends Service implements Listener {
   public static final String TAG = "WS_PushService";
 
-	public static final String ACTION_PING = "WS_PING";
-	public static final String ACTION_CONNECT = "WS_CONNECT";
-	public static final String ACTION_DISCONNECT = "WS_DISCONNECT";
-	
-	private WebSocketClient mClient;
+	public static final String  ACTION_PING        = "WS_PING";
+	public static final String  ACTION_CONNECT     = "WS_CONNECT";
+	public static final String  ACTION_DISCONNECT  = "WS_DISCONNECT";
+    private static final String ACTION_ACKNOWLEDGE = "WS_ACKNOWLEDGE" ;
+
+    private WebSocketClient mClient;
 	private final IBinder mBinder = new Binder();
 	private boolean mShutDown = false;
 	private Handler mHandler;
@@ -60,6 +62,13 @@ public class PushService extends Service implements Listener {
 		i.setAction(ACTION_DISCONNECT);
 		return i;
 	}
+
+    public static Intent ackIntent(Context context, WebsocketMessage message){
+        Intent i = new Intent(context, PushService.class);
+        i.setAction(ACTION_ACKNOWLEDGE);
+        i.putExtra("ack", message.toJSON());
+        return i;
+    }
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -101,11 +110,13 @@ public class PushService extends Service implements Listener {
 		
 		if(intent != null) {
             if(ACTION_PING.equals(intent.getAction())){
-                if(mClient.isConnected()) mClient.send(" "); //TODO Check if sending a space is enough
+                if(mClient.isConnected()) mClient.send("{\"type\":2}"); //TODO FIX this with gson
             } else if(ACTION_DISCONNECT.equals(intent.getAction())){
 				mShutDown = true;
 				if(mClient.isConnected()) mClient.disconnect();
-			}
+			}else if(ACTION_ACKNOWLEDGE.equals(intent.getAction())){
+                if(mClient.isConnected()) mClient.send("{\"type\":1, \"id\":"+WebsocketMessage.fromJson(intent.getStringExtra("ack")).getId()+"}"); //TODO Build this JSON properly
+            }
 		}
 		
 		if(intent == null || !intent.getAction().equals(ACTION_DISCONNECT)){
@@ -159,6 +170,8 @@ public class PushService extends Service implements Listener {
 	public synchronized void onMessage(String data) {
 		WakeLock wakelock = ((PowerManager)getSystemService(POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 		wakelock.acquire();
+        if(context == null)
+            context = getApplicationContext();
         try{
             if (Util.isEmpty(data))
                 return;
@@ -166,8 +179,11 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Not push registered!");
                 return;
             }
+            Log.d(TAG, data);
+            WebsocketMessage websocketMessage = WebsocketMessage.fromJson(data);
+            //TODO Check if type exists (PONG message)
             String                       sessionKey       = TextSecurePreferences.getSignalingKey(context);
-            IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(data, sessionKey);
+            IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(websocketMessage.getMessage(), sessionKey);
             IncomingPushMessage          message          = encryptedMessage.getIncomingPushMessage();
 
         if (!isActiveNumber(context, message.getSource())) {
