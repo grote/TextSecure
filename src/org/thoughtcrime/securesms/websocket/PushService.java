@@ -42,7 +42,6 @@ public class PushService extends Service implements Listener {
     private WebSocketClient mClient;
 	private final IBinder mBinder = new Binder();
 	private boolean mShutDown = false;
-	private Handler mHandler;
 	private Context context;
 	public static Intent startIntent(Context context){
         context = context;
@@ -69,7 +68,7 @@ public class PushService extends Service implements Listener {
         i.putExtra("ack", message.toJSON());
         return i;
     }
-	
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return mBinder;
@@ -78,7 +77,6 @@ public class PushService extends Service implements Listener {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		mHandler = new Handler();
 		Log.d(TAG, "Creating Service " + this.toString());
 	}
 	
@@ -106,20 +104,21 @@ public class PushService extends Service implements Listener {
                             getApplication())), this, null, clientlock);
 		}
 		
-		if(!mClient.isConnected()) mClient.connect();
+
 		
 		if(intent != null) {
+            if(ACTION_DISCONNECT.equals(intent.getAction())) {
+                mShutDown = true;
+                if (mClient.isConnected()) mClient.disconnect();
+            }else if(!mClient.isConnected()) mClient.connect();
             if(ACTION_PING.equals(intent.getAction())){
                 if(mClient.isConnected()) mClient.send("{\"type\":2}"); //TODO FIX this with gson
-            } else if(ACTION_DISCONNECT.equals(intent.getAction())){
-				mShutDown = true;
-				if(mClient.isConnected()) mClient.disconnect();
-			}else if(ACTION_ACKNOWLEDGE.equals(intent.getAction())){
+            } else if(ACTION_ACKNOWLEDGE.equals(intent.getAction())){
                 if(mClient.isConnected()) mClient.send("{\"type\":1, \"id\":"+WebsocketMessage.fromJson(intent.getStringExtra("ack")).getId()+"}"); //TODO Build this JSON properly
             }
 		}
 		
-		if(intent == null || !intent.getAction().equals(ACTION_DISCONNECT)){
+		if(intent == null || !mShutDown){
 			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 			PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE); 
 			if(operation == null){
@@ -179,8 +178,11 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Not push registered!");
                 return;
             }
-            Log.d(TAG, data);
+            if(data.contains("type")){
+                return;
+            }
             WebsocketMessage websocketMessage = WebsocketMessage.fromJson(data);
+
             //TODO Check if type exists (PONG message)
             String                       sessionKey       = TextSecurePreferences.getSignalingKey(context);
             IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(websocketMessage.getMessage(), sessionKey);
@@ -194,6 +196,7 @@ public class PushService extends Service implements Listener {
             directory.setNumber(contactTokenDetails, true);
         }
 
+        context.startService(ackIntent(context, websocketMessage));
         Intent service = new Intent(context, SendReceiveService.class);
         service.setAction(SendReceiveService.RECEIVE_PUSH_ACTION);
         service.putExtra("message", message);

@@ -9,6 +9,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 
+import org.thoughtcrime.securesms.util.TextSecurePreferences;
+
 public class NetworkReceiver extends BroadcastReceiver {   
   public static final String TAG = "ws.NetworkReceiver";
     
@@ -16,7 +18,7 @@ public class NetworkReceiver extends BroadcastReceiver {
 public void onReceive(Context context, Intent intent) {
 	    ConnectivityManager conn =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = conn.getActiveNetworkInfo();
-	    
+	    if(TextSecurePreferences.isGcmRegistered(context))return;
 		if (networkInfo != null && networkInfo.getDetailedState() == NetworkInfo.DetailedState.CONNECTED) {
 	        Log.i(TAG, "connected");
 			context.startService(PushService.startIntent(context.getApplicationContext()));
@@ -28,7 +30,7 @@ public void onReceive(Context context, Intent intent) {
 	    else {
 	        Log.i(TAG, "lost connection");
 	        AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-          PendingIntent operation = PendingIntent.getService(context, 0, PushService.pingIntent(context), PendingIntent.FLAG_NO_CREATE);  
+           PendingIntent operation = PendingIntent.getService(context, 0, PushService.pingIntent(context), PendingIntent.FLAG_NO_CREATE);
 	        if(operation != null){
 	        	am.cancel(operation);
 	        	operation.cancel();

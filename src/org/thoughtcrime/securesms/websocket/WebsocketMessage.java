@@ -7,10 +7,13 @@ public class WebsocketMessage {
 
     private long id;
 
+    private long type;
+
     private String message;
 
-    public WebsocketMessage(long id, String message) {
+    public WebsocketMessage(long id, long type, String message) {
         this.id      = id;
+        this.type = type;
         this.message = message;
     }
 

@@ -20,6 +20,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -93,14 +94,19 @@ public class WebSocketClient {
 
 					String path = TextUtils.isEmpty(mURI.getPath()) ? "/" : mURI.getPath();
 					if (!TextUtils.isEmpty(mURI.getQuery())) {
-						path += "?" + mURI.getQuery().replaceFirst("\\+","%2B");
+						path += "?" + mURI.getQuery().replaceAll("\\+","%2B");
 					}
 
 					String originScheme = mURI.getScheme().equals("wss") ? "https" : "http";
 					URI origin = new URI(originScheme, "//" + mURI.getHost(), null);
 
 					SocketFactory factory = (mURI.getScheme().equals("wss") || mURI.getScheme().equals("https")) ? getSSLSocketFactory() : SocketFactory.getDefault();
-					mSocket = factory.createSocket(mURI.getHost(), port);
+                    try{
+                        mSocket = factory.createSocket(mURI.getHost(), port);
+                    }catch(Exception e){
+                        Log.w(TAG, e);
+                        return;
+                    }
 
 					PrintWriter out = new PrintWriter(mSocket.getOutputStream());
 					out.print("GET " + path + " HTTP/1.1\r\n");

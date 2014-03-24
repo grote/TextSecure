@@ -27,7 +27,7 @@ public class GcmIntentService extends GCMBaseIntentService {
 
   @Override
   protected void onRegistered(Context context, String registrationId) {
-    if (!TextSecurePreferences.isPushRegistered(context)) {
+    if (!TextSecurePreferences.isGcmRegistered(context)) {
       Intent intent = new Intent(RegistrationService.GCM_REGISTRATION_EVENT);
       intent.putExtra(RegistrationService.GCM_REGISTRATION_ID, registrationId);
       sendBroadcast(intent);

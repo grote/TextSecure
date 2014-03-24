@@ -17,6 +17,7 @@ import org.thoughtcrime.securesms.crypto.IdentityKeyUtil;
 import org.thoughtcrime.securesms.gcm.GcmIntentService;
 import org.thoughtcrime.securesms.gcm.GcmRegistrationTimeoutException;
 import org.thoughtcrime.securesms.push.PushServiceSocketFactory;
+import org.thoughtcrime.securesms.util.Dialogs;
 import org.thoughtcrime.securesms.util.DirectoryHelper;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.whispersystems.textsecure.crypto.IdentityKey;
@@ -216,7 +217,7 @@ public class RegistrationService extends Service {
       String signalingKey = Util.getSecret(52);
 
       initializeChallengeListener();
-      initializeGcmRegistrationListener();
+      //initializeGcmRegistrationListener();
 
       setState(new RegistrationState(RegistrationState.STATE_CONNECTING, number));
       PushServiceSocket socket = PushServiceSocketFactory.create(this, number, password);

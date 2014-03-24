@@ -19,6 +19,8 @@ package org.thoughtcrime.securesms;
 import android.app.Application;
 import com.codebutler.android_websockets.WebSocketClient.Listener;
 import org.thoughtcrime.securesms.crypto.PRNGFixes;
+import org.thoughtcrime.securesms.util.TextSecurePreferences;
+import org.thoughtcrime.securesms.websocket.PushService;
 
 /**
  * Will be called once when the TextSecure process is created.
@@ -32,6 +34,9 @@ public class ApplicationListener extends Application {
   @Override
   public void onCreate() {
     PRNGFixes.apply();
+    if(TextSecurePreferences.isPushRegistered(getApplicationContext())
+       && !TextSecurePreferences.isGcmRegistered(getApplicationContext()))
+            startService(PushService.startIntent(this.getApplicationContext()));
   }
 
 }

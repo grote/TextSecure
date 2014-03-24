@@ -178,6 +178,13 @@ public class RegistrationActivity extends SherlockActivity {
         return;
       }
 
+      try {
+          GCMRegistrar.checkDevice(self);
+      } catch (UnsupportedOperationException uoe) {
+          Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket", uoe);
+          TextSecurePreferences.setGcmRegistered(self, false);
+      }
+
       AlertDialog.Builder dialog = new AlertDialog.Builder(self);
       dialog.setMessage(String.format(getString(R.string.RegistrationActivity_we_will_now_verify_that_the_following_number_is_associated_with_your_device_s),
                                       PhoneNumberFormatter.getInternationalFormatFromE164(e164number)));
