@@ -10,6 +10,7 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
+import org.w3c.dom.Text;
 
 public class NetworkReceiver extends BroadcastReceiver {   
   public static final String TAG = "ws.NetworkReceiver";
@@ -18,7 +19,7 @@ public class NetworkReceiver extends BroadcastReceiver {
 public void onReceive(Context context, Intent intent) {
 	    ConnectivityManager conn =  (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = conn.getActiveNetworkInfo();
-	    if(TextSecurePreferences.isGcmRegistered(context))return;
+	    if(TextSecurePreferences.isGcmRegistered(context) && !TextSecurePreferences.isPushRegistered(context))return;
 		if (networkInfo != null && networkInfo.getDetailedState() == NetworkInfo.DetailedState.CONNECTED) {
 	        Log.i(TAG, "connected");
 			context.startService(PushService.startIntent(context.getApplicationContext()));
