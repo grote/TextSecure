@@ -68,7 +68,7 @@ public class RegistrationService extends Service {
   public static final String CHALLENGE_EXTRA        = "CAAChallenge";
   public static final String GCM_REGISTRATION_ID    = "GCMRegistrationId";
 
-  private static final long REGISTRATION_TIMEOUT_MILLIS = 2000;
+  private static final long REGISTRATION_TIMEOUT_MILLIS = 2000; //TODO For quicker testing
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Binder          binder   = new RegistrationServiceBinder();
@@ -225,8 +225,11 @@ public class RegistrationService extends Service {
 
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING, number));
       String challenge = waitForChallenge();
-      socket.verifyAccount(challenge, signalingKey, true, registrationId);
-
+      if (TextSecurePreferences.isGcmRegistered(this)) {
+        socket.verifyAccount(challenge, signalingKey, true, registrationId);
+      } else {
+        socket.verifyAccount(challenge, signalingKey, true, registrationId, true);
+      }
       handleCommonRegistration(masterSecret, socket, number);
       markAsVerified(number, password, signalingKey);
 
@@ -268,18 +271,25 @@ public class RegistrationService extends Service {
     socket.registerPreKeys(identityKey, lastResort, records);
 
     //TODO This has to be caught. Perfom GCM check here
-    /*try {
+    if(TextSecurePreferences.isGcmRegistered(this)){
+        try {
+            throw new UnsupportedOperationException(); //TODO Testing only
+        /*
         GCMRegistrar.checkDevice(this);
        setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
         GCMRegistrar.register(this, GcmIntentService.GCM_SENDER_ID);
         String gcmRegistrationId = waitForGcmRegistrationId();
         socket.registerGcmId(gcmRegistrationId);
-    } catch (UnsupportedOperationException uoe) {
-       // Dialogs.showAlertDialog(this, getString(R.string.RegistrationActivity_unsupported),
-        //        getString(R.string.RegistrationActivity_sorry_this_device_is_not_supported_for_data_messaging));
-       // return; //TODO Fix me: this device can do WebSocket!
+        */
+        } catch (UnsupportedOperationException uoe) {
+             Dialogs.showAlertDialog(this, getString(R.string.RegistrationActivity_unsupported),
+                    getString(R.string.RegistrationActivity_sorry_this_device_is_not_supported_for_data_messaging));
+            return;
+
+
+        }
     }
-*/
+
     DirectoryHelper.refreshDirectory(this, socket, number);
 
     DirectoryRefreshListener.schedule(this);

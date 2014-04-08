@@ -96,18 +96,21 @@ public class PushService extends Service implements Listener {
 		Log.i(TAG, "PushService start command");
 		if(intent != null) Log.i(TAG, intent.toUri(0));
 		mShutDown = false;
-        if(mClient == null && TextSecurePreferences.isPushRegistered(getApplication()) && !TextSecurePreferences.isGcmRegistered(getApplication())) {
+
+        if(!TextSecurePreferences.isPushRegistered(getApplicationContext()) || TextSecurePreferences.isGcmRegistered(getApplicationContext())) {
+            Log.i(TAG, "PushService not registered");
+            wakelock.release();
+            return START_STICKY;
+        }
+
+        if(mClient == null) {
 			WakeLock clientlock = ((PowerManager)getSystemService(POWER_SERVICE))
                                    .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 			mClient = new WebSocketClient(URI.create(Release.WS_URL+"?user="
                             +TextSecurePreferences.getLocalNumber(getApplication())+
                             "&password="+TextSecurePreferences.getPushServerPassword(
                             getApplication())), this, null, clientlock);
-		}else{
-            Log.i(TAG, "PushService not registered");
-            wakelock.release();
-            return START_STICKY;
-        }
+		}
 		
 
 		

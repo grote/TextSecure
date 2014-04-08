@@ -34,6 +34,7 @@ import org.thoughtcrime.securesms.push.PushServiceSocketFactory;
 import org.thoughtcrime.securesms.service.RegistrationService;
 import org.thoughtcrime.securesms.util.Dialogs;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
+import org.thoughtcrime.securesms.websocket.PushService;
 import org.whispersystems.textsecure.crypto.MasterSecret;
 import org.whispersystems.textsecure.push.ExpectationFailedException;
 import org.whispersystems.textsecure.push.PushServiceSocket;
@@ -327,7 +328,10 @@ public class RegistrationProgressActivity extends SherlockActivity {
                      R.string.RegistrationProgressActivity_registration_complete,
                      Toast.LENGTH_LONG).show();
     }
-
+      if(TextSecurePreferences.isPushRegistered(getApplicationContext())
+              && !TextSecurePreferences.isGcmRegistered(getApplicationContext())){
+      startService(PushService.startIntent(this.getApplicationContext()));
+  }
     shutdownService();
     startActivity(new Intent(this, RoutingActivity.class));
     finish();
@@ -516,7 +520,11 @@ public class RegistrationProgressActivity extends SherlockActivity {
           try {
             PushServiceSocket socket = PushServiceSocketFactory.create(context, e164number, password);
             int registrationId = TextSecurePreferences.getLocalRegistrationId(context);
-            socket.verifyAccount(code, signalingKey, true, registrationId);
+              if (TextSecurePreferences.isGcmRegistered(context)) {
+                  socket.verifyAccount(code, signalingKey, true, registrationId);
+              } else {
+                  socket.verifyAccount(code, signalingKey, true, registrationId, true);
+              }
             return SUCCESS;
           } catch (ExpectationFailedException e) {
             Log.w("RegistrationProgressActivity", e);

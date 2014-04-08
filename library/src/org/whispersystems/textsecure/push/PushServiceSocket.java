@@ -100,9 +100,16 @@ public class PushServiceSocket {
                             boolean supportsSms, int registrationId)
       throws IOException
   {
-    AccountAttributes signalingKeyEntity = new AccountAttributes(signalingKey, supportsSms, registrationId);
-    makeRequest(String.format(VERIFY_ACCOUNT_PATH, verificationCode),
-                "PUT", new Gson().toJson(signalingKeyEntity));
+      verifyAccount(verificationCode, signalingKey, supportsSms, registrationId, false);
+  }
+
+  public  void verifyAccount(String verificationCode, String signalingKey,
+                             boolean supportsSms, int registrationId, boolean fetchesMessages)
+          throws IOException
+  {
+      AccountAttributes signalingKeyEntity = new AccountAttributes(signalingKey, supportsSms, registrationId, fetchesMessages);
+      makeRequest(String.format(VERIFY_ACCOUNT_PATH, verificationCode),
+              "PUT", new Gson().toJson(signalingKeyEntity));
   }
 
   public void registerGcmId(String gcmRegistrationId) throws IOException {
@@ -440,7 +447,8 @@ public class PushServiceSocket {
     }
   }
 
-  private static class GcmRegistrationId {
+
+    private static class GcmRegistrationId {
     private String gcmRegistrationId;
 
     public GcmRegistrationId() {}

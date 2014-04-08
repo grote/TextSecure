@@ -17,6 +17,7 @@
 package org.thoughtcrime.securesms;
 
 import android.app.Application;
+
 import com.codebutler.android_websockets.WebSocketClient.Listener;
 import org.thoughtcrime.securesms.crypto.PRNGFixes;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;

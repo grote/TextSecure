@@ -181,12 +181,11 @@ public class TextSecurePreferences {
   }
 
   public static boolean isPushRegistered(Context context) {
-    return getBooleanPreference(context, REGISTERED_GCM_PREF, false);
+    return getBooleanPreference(context, REGISTERED_PUSH_PREF, false);
   }
 
   public static void setPushRegistered(Context context, boolean registered) {
-    Log.w("TextSecurePreferences", "Setting push registered: " + registered);
-    setBooleanPreference(context, REGISTERED_GCM_PREF, registered);
+    setBooleanPreference(context, REGISTERED_PUSH_PREF, registered);
   }
 
   public static boolean isPassphraseTimeoutEnabled(Context context) {
