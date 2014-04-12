@@ -179,9 +179,9 @@ public class RegistrationActivity extends SherlockActivity {
       }
 
       try {
-          throw new UnsupportedOperationException();
-         // GCMRegistrar.checkDevice(self);
-         // TextSecurePreferences.setGcmRegistered(self, true);
+          if(Release.DISABLE_GCM)throw new UnsupportedOperationException();
+          GCMRegistrar.checkDevice(self);
+          TextSecurePreferences.setGcmRegistered(self, true);
       } catch (UnsupportedOperationException uoe) {
           Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket", uoe);
           TextSecurePreferences.setGcmRegistered(self, false);

@@ -131,7 +131,7 @@ public class PushService extends Service implements Listener {
 			PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE); 
 			if(operation == null){
 		       	operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
-		       	am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_HALF_HOUR, operation);
+		       	am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 50*1000, operation); //Set to Heroku Limit of 55s
 		    }
 		}
 		

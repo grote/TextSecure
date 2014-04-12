@@ -23,7 +23,7 @@ import java.io.IOException;
 
 public class GcmIntentService extends GCMBaseIntentService {
 
-  public static final String GCM_SENDER_ID = "312334754206";
+  public static final String GCM_SENDER_ID = "925827682985";
 
   @Override
   protected void onRegistered(Context context, String registrationId) {

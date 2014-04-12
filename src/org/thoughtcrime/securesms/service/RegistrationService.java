@@ -13,6 +13,7 @@ import android.util.Log;
 import com.google.android.gcm.GCMRegistrar;
 
 import org.thoughtcrime.securesms.R;
+import org.thoughtcrime.securesms.Release;
 import org.thoughtcrime.securesms.crypto.IdentityKeyUtil;
 import org.thoughtcrime.securesms.gcm.GcmIntentService;
 import org.thoughtcrime.securesms.gcm.GcmRegistrationTimeoutException;
@@ -224,7 +225,7 @@ public class RegistrationService extends Service {
       socket.createAccount(false);
 
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING, number));
-      String challenge = waitForChallenge();
+      String challenge = "111111"; //waitForChallenge();
       if (TextSecurePreferences.isGcmRegistered(this)) {
         socket.verifyAccount(challenge, signalingKey, true, registrationId);
       } else {
@@ -243,11 +244,11 @@ public class RegistrationService extends Service {
       Log.w("RegistrationService", uoe);
       setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED, number));
       broadcastComplete(false);
-    } catch (AccountVerificationTimeoutException avte) {
+    }/* catch (AccountVerificationTimeoutException avte) {
       Log.w("RegistrationService", avte);
       setState(new RegistrationState(RegistrationState.STATE_TIMEOUT, number));
       broadcastComplete(false);
-    } catch (IOException e) {
+    }*/ catch (IOException e) {
       Log.w("RegistrationService", e);
       setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR, number));
       broadcastComplete(false);
@@ -273,14 +274,11 @@ public class RegistrationService extends Service {
     //TODO This has to be caught. Perfom GCM check here
     if(TextSecurePreferences.isGcmRegistered(this)){
         try {
-            throw new UnsupportedOperationException(); //TODO Testing only
-        /*
-        GCMRegistrar.checkDevice(this);
-       setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
-        GCMRegistrar.register(this, GcmIntentService.GCM_SENDER_ID);
-        String gcmRegistrationId = waitForGcmRegistrationId();
-        socket.registerGcmId(gcmRegistrationId);
-        */
+            GCMRegistrar.checkDevice(this);
+            setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
+            GCMRegistrar.register(this, GcmIntentService.GCM_SENDER_ID);
+            String gcmRegistrationId = waitForGcmRegistrationId();
+            socket.registerGcmId(gcmRegistrationId);
         } catch (UnsupportedOperationException uoe) {
              Dialogs.showAlertDialog(this, getString(R.string.RegistrationActivity_unsupported),
                     getString(R.string.RegistrationActivity_sorry_this_device_is_not_supported_for_data_messaging));
