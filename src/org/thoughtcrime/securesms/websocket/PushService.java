@@ -14,6 +14,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -99,8 +101,34 @@ public class PushService extends Service implements Listener {
 
         if(!TextSecurePreferences.isPushRegistered(getApplicationContext()) || TextSecurePreferences.isGcmRegistered(getApplicationContext())) {
             Log.i(TAG, "PushService not registered");
+            stopSelf();
             wakelock.release();
-            return START_STICKY;
+            return START_NOT_STICKY;
+        }
+
+        if(intent == null || ACTION_CONNECT == intent.getAction()){
+            ConnectivityManager conn =  (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = conn.getActiveNetworkInfo();
+            if(networkInfo != null){
+                NetworkInfo.DetailedState state = networkInfo.getDetailedState();
+                if(state != null) Log.w(TAG, "NetworkInfo: "+state.name());
+                if(networkInfo.getDetailedState() != NetworkInfo.DetailedState.CONNECTED){
+                    Log.w(TAG, "Not connected, reset");
+                    wakelock.release();
+                    return START_NOT_STICKY;
+                }
+            }else{
+                Log.w(TAG, "No ActiveNetwork, reset");
+                wakelock.release();
+                return START_NOT_STICKY;
+            }
+            AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+            PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE);
+            if(operation == null){
+                Log.d(TAG, "Setup timer");
+                operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
+                am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 50*1000, operation);
+            }
         }
 
         if(mClient == null) {
@@ -111,9 +139,6 @@ public class PushService extends Service implements Listener {
                             "&password="+TextSecurePreferences.getPushServerPassword(
                             getApplication())), this, null, clientlock);
 		}
-		
-
-		
 		if(intent != null) {
             if(ACTION_DISCONNECT.equals(intent.getAction())) {
                 mShutDown = true;
@@ -124,16 +149,7 @@ public class PushService extends Service implements Listener {
             } else if(ACTION_ACKNOWLEDGE.equals(intent.getAction())){
                 if(mClient.isConnected()) mClient.send("{\"type\":1, \"id\":"+WebsocketMessage.fromJson(intent.getStringExtra("ack")).getId()+"}"); //TODO Build this JSON properly
             }
-		}
-		
-		if(intent == null || !mShutDown){
-			AlarmManager am = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-			PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE); 
-			if(operation == null){
-		       	operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
-		       	am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 50*1000, operation); //Set to Heroku Limit of 55s
-		    }
-		}
+        }
 		
 		wakelock.release();
 		return START_STICKY;

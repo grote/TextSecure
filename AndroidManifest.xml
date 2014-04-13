@@ -214,7 +214,7 @@
     <service android:enabled="true" android:name=".service.DirectoryRefreshService"/>
     <service android:enabled="true" android:name=".service.PreKeyService"/>
     <service android:enabled="true" android:name=".gcm.GcmIntentService"/>
-    <service android:enabled="true" android:name=".websocket.PushService"></service>
+    <service android:enabled="true" android:name="org.thoughtcrime.securesms.websocket.PushService" />
 
     <service android:name=".service.QuickResponseService"
              android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE"
@@ -288,10 +288,13 @@
     </receiver>
     
     <receiver
-            android:name=".websocket.NetworkReceiver">
+            android:name="org.thoughtcrime.securesms.websocket.NetworkReceiver"
+            android:enabled="false" >
+
            <intent-filter >
                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                <action android:name="android.intent.action.BOOT_COMPLETED" />
+               <action android:name="android.intent.action.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE" />
            </intent-filter>
     </receiver>
 

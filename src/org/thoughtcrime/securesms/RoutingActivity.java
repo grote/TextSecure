@@ -2,7 +2,6 @@ package org.thoughtcrime.securesms;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 
 import org.thoughtcrime.securesms.crypto.MasterSecretUtil;
 import org.thoughtcrime.securesms.database.DatabaseFactory;

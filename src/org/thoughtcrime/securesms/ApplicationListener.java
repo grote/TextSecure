@@ -35,9 +35,6 @@ public class ApplicationListener extends Application {
   @Override
   public void onCreate() {
     PRNGFixes.apply();
-    if(TextSecurePreferences.isPushRegistered(getApplicationContext())
-       && !TextSecurePreferences.isGcmRegistered(getApplicationContext()))
-            startService(PushService.startIntent(this.getApplicationContext()));
   }
 
 }
