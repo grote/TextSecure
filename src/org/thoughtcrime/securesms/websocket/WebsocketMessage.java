@@ -12,17 +12,17 @@ public class WebsocketMessage {
     private String message;
 
     public WebsocketMessage(long id, long type, String message) {
-        this.id      = id;
+        this.id = id;
         this.type = type;
         this.message = message;
     }
 
-    public String getMessage(){
+    public String getMessage() {
         return message;
     }
 
     public static WebsocketMessage fromJson(String data) {
-        return new Gson().fromJson(data,WebsocketMessage.class);
+        return new Gson().fromJson(data, WebsocketMessage.class);
     }
 
     public String toJSON() {
