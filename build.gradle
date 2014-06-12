@@ -64,6 +64,11 @@ android {
                 assets.srcDirs = ['assets']
             }
         }
+        productFlavors {
+            wstest {
+                packageName "org.thoughtcrime.securesms.wstest"
+            }
+        }
     }
 
     signingConfigs {

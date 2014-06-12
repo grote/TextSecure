@@ -89,6 +89,7 @@ public class WebSocketClient {
 				try {
 					if(mWakeLock != null) synchronized (mWakeLock) {
 						mWakeLock.acquire();
+                        Log.d(TAG, "WSClient aquire: "+mWakeLock.toString());
 					}
 					int port = (mURI.getPort() != -1) ? mURI.getPort() : ((mURI.getScheme().equals("wss") || mURI.getScheme().equals("https")) ? 443 : 80);
 
@@ -146,7 +147,11 @@ public class WebSocketClient {
 					mListener.onConnect();
 
 					mConnected = true;
-					if(mWakeLock != null && mWakeLock.isHeld()) mWakeLock.release();
+					if(mWakeLock != null && mWakeLock.isHeld()){
+                        mWakeLock.release();
+
+                        Log.d(TAG, "WSClient release: "+mWakeLock.toString());
+                    }
 					// Now decode websocket frames.
 					mParser.start(stream);
 
@@ -168,6 +173,7 @@ public class WebSocketClient {
 					if(mWakeLock != null && mWakeLock.isHeld()){
 						mWakeLock.setReferenceCounted(false);
 						mWakeLock.release();
+                        Log.d(TAG, "WSClient release: "+mWakeLock.toString());
 						mWakeLock.setReferenceCounted(true);
 					}
 				}
