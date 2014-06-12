@@ -4,9 +4,10 @@ This branch gives a very rudimentary WebSocket support.
 The credit for the WebSocket implementation goes to Nathan Schwermann at https://github.com/schwiz
 I gave credit in the NOTICE file, if there is an issue please write me.
 
-Missing features
------------------
-1. Registration with the TS server
+This app registers under a separate package name, so this and the official app can be installed in parallel.
+It works with the server of the @TheBlueMatt but has NO SSL support!
+This branch is only for testing and developing!
+
 
 TextSecure
 =================
