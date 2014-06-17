@@ -56,10 +56,13 @@
     <string name="ConversationItem_group_action_left">%1$s has left the group.</string>
     <string name="ConversationItem_group_action_joined">%1$s have joined the group.</string>
     <string name="ConversationItem_group_action_modify">%1$s has updated the group.</string>
-    <string name="ConversationItem_click_to_approve">Tap for SMS fallback</string>
+    <string name="ConversationItem_click_to_approve_sms">Tap for SMS fallback</string>
+    <string name="ConversationItem_click_to_approve_mms">Tap for MMS fallback</string>
     <string name="ConversationItem_click_to_approve_unencrypted">Tap for insecure fallback</string>
-    <string name="ConversationItem_click_to_approve_dialog_title">Fallback to SMS?</string>
-    <string name="ConversationItem_click_to_approve_unencrypted_dialog_title">Fallback to unencrypted SMS?</string>
+    <string name="ConversationItem_click_to_approve_sms_dialog_title">Fallback to SMS?</string>
+    <string name="ConversationItem_click_to_approve_mms_dialog_title">Fallback to MMS?</string>
+    <string name="ConversationItem_click_to_approve_unencrypted_sms_dialog_title">Fallback to unencrypted SMS?</string>
+    <string name="ConversationItem_click_to_approve_unencrypted_mms_dialog_title">Fallback to unencrypted MMS?</string>
     <string name="ConversationItem_click_to_approve_unencrypted_dialog_message">This message will <b>not</b> be encrypted because a secure session could not be established.\n\nSend insecure message?</string>
 
     <!-- ConversationActivity -->
@@ -441,7 +444,11 @@
     <string name="contact_selection_recent_activity__no_recent_calls">No recent calls.</string>
 
     <!-- conversation_activity -->
-    <string name="conversation_activity__type_message"><small>Send a message</small></string>
+    <string name="conversation_activity__type_message_push">Send TextSecure message</string>
+    <string name="conversation_activity__type_message_sms_secure">Send secure SMS</string>
+    <string name="conversation_activity__type_message_sms_insecure">Send insecure SMS</string>
+    <string name="conversation_activity__type_message_mms_secure">Send secure MMS</string>
+    <string name="conversation_activity__type_message_mms_insecure">Send insecure MMS</string>
     <string name="conversation_activity__send">Send</string>
     <string name="conversation_activity__remove">Remove</string>
 
@@ -463,6 +470,7 @@
 
     <!-- conversation_fragment_cab -->
     <string name="conversation_fragment_cab__batch_selection_mode">Batch selection mode</string>
+    <string name="conversation_fragment_cab__batch_selection_amount">%s selected</string>
 
     <!-- country_selection_fragment -->
     <string name="country_selection_fragment__loading_countries">Loading countries...</string>
@@ -686,7 +694,7 @@
     <string name="preferences__disable_local_encryption_of_messages_and_keys">Disable local encryption of messages and keys</string>
     <string name="preferences__screen_security">Screen security</string>
     <string name="preferences__automatically_complete_key_exchanges_for_new_sessions_or_for_existing_sessions_with_the_same_identity_key">Automatically complete key exchanges for new sessions or for existing sessions with the same identity key</string>
-    <string name="preferences__disable_screen_security_to_allow_screen_shots">Disable screen security to allow screen shots</string>
+    <string name="preferences__disable_screen_security_to_allow_screen_shots">Block screenshots in the recents list and inside the app</string>
     <string name="preferences__forget_passphrase_from_memory_after_some_interval">Forget passphrase from memory after some interval</string>
     <string name="preferences__timeout_passphrase">Timeout passphrase</string>
     <string name="preferences__pref_timeout_interval_dialogtitle">Select passphrase timeout</string>
@@ -782,8 +790,10 @@
 
     <!-- conversation_button_context -->
     <string name="conversation_button_context__send_textsecure_message">Send TextSecure message</string>
-    <string name="conversation_button_context__send_unencrypted_sms">Send unencrypted SMS</string>
-    <string name="conversation_button_context__send_encrypted_sms">Send encrypted SMS</string>
+    <string name="conversation_button_context__send_secure_sms">Send secure SMS</string>
+    <string name="conversation_button_context__send_insecure_sms">Send insecure SMS</string>
+    <string name="conversation_button_context__send_secure_mms">Send secure MMS</string>
+    <string name="conversation_button_context__send_insecure_mms">Send insecure MMS</string>
 
     <!-- conversation_callable -->
     <string name="conversation_callable__menu_call">Call</string>

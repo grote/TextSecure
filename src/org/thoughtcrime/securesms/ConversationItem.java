@@ -261,12 +261,19 @@ public class ConversationItem extends LinearLayout {
       dateText.setText(R.string.ConversationItem_error_sending_message);
     } else if (messageRecord.isPendingSmsFallback() && indicatorText != null) {
       dateText.setText("");
-      if (messageRecord.isPendingSecureSmsFallback()) indicatorText.setText(R.string.ConversationItem_click_to_approve);
-      else                                            indicatorText.setText(R.string.ConversationItem_click_to_approve_unencrypted);
+      if (messageRecord.isPendingSecureSmsFallback()) {
+        if (messageRecord.isMms()) indicatorText.setText(R.string.ConversationItem_click_to_approve_mms);
+        else                       indicatorText.setText(R.string.ConversationItem_click_to_approve_sms);
+      } else {
+        indicatorText.setText(R.string.ConversationItem_click_to_approve_unencrypted);
+      }
     } else if (messageRecord.isPending()) {
       dateText.setText(" ··· ");
     } else {
-      final long timestamp = messageRecord.getDateSent();
+      final long timestamp;
+
+      if (messageRecord.isPush()) timestamp = messageRecord.getDateSent();
+      else                        timestamp = messageRecord.getDateReceived();
 
       dateText.setText(DateUtils.getBetterRelativeTimeSpanString(getContext(), timestamp));
     }
@@ -515,17 +522,24 @@ public class ConversationItem extends LinearLayout {
   private void handleMessageApproval() {
     final int title;
     final int message;
+
     if (messageRecord.isPendingSecureSmsFallback()) {
-      title = R.string.ConversationItem_click_to_approve_dialog_title;
+      if (messageRecord.isMms()) title = R.string.ConversationItem_click_to_approve_mms_dialog_title;
+      else                       title = R.string.ConversationItem_click_to_approve_sms_dialog_title;
+
       message = -1;
     } else {
-      title = R.string.ConversationItem_click_to_approve_unencrypted_dialog_title;
+      if (messageRecord.isMms()) title = R.string.ConversationItem_click_to_approve_unencrypted_mms_dialog_title;
+      else                       title = R.string.ConversationItem_click_to_approve_unencrypted_sms_dialog_title;
+
       message = R.string.ConversationItem_click_to_approve_unencrypted_dialog_message;
     }
 
     AlertDialog.Builder builder = new AlertDialog.Builder(context);
     builder.setTitle(title);
+
     if (message > -1) builder.setMessage(message);
+
     builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialogInterface, int i) {
@@ -544,12 +558,17 @@ public class ConversationItem extends LinearLayout {
           database.markAsOutbox(messageRecord.getId());
           database.markAsForcedSms(messageRecord.getId());
         }
+
         Intent intent = new Intent(context, SendReceiveService.class);
-        intent.setAction(SendReceiveService.SEND_SMS_ACTION);
+        intent.setAction(messageRecord.isMms() ?
+                             SendReceiveService.SEND_MMS_ACTION :
+                             SendReceiveService.SEND_SMS_ACTION);
         intent.putExtra(SendReceiveService.MASTER_SECRET_EXTRA, masterSecret);
+
         context.startService(intent);
       }
     });
+
     builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
       @Override
       public void onClick(DialogInterface dialogInterface, int i) {
