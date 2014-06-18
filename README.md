@@ -8,7 +8,7 @@ This app registers under a separate package name, so this and the official app c
 It works with the server of the @TheBlueMatt but has NO SSL support!
 This branch is only for testing and developing!
 
-# TextSecure
+# TextSecure [![Build Status](https://travis-ci.org/WhisperSystems/TextSecure.svg?branch=master)](https://travis-ci.org/WhisperSystems/TextSecure)
 
 TextSecure is a messaging app for easy private communicate with friends.
 
