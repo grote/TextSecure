@@ -164,8 +164,11 @@ public class PushService extends Service implements Listener {
                     Log.w(TAG, "Ping failed, client not connected");
                 }
             } else if (ACTION_ACKNOWLEDGE.equals(intent.getAction())) {
-                if (mClient.isConnected())
-                    mClient.send("{\"type\":1, \"id\":" + WebsocketMessage.fromJson(intent.getStringExtra("ack")).getId() + "}"); //TODO Build this JSON properly
+                if (mClient.isConnected()) {
+                    String ackMessage= "{\"type\":1, \"id\":" + WebsocketMessage.fromJson(intent.getStringExtra("ack")).getId() + "}";
+                    mClient.send(ackMessage); //TODO Build this JSON properly
+                    Log.d(TAG, "Acknowledge message: "+ackMessage);
+                }
             }
         }
 
@@ -236,6 +239,8 @@ public class PushService extends Service implements Listener {
             Log.d(TAG, "REACHED");
             WebsocketMessage websocketMessage = WebsocketMessage.fromJson(data);
 
+            Log.d(TAG, "StartService: ackIntent; "+startService(ackIntent(this, websocketMessage))); //TODO This acks the message prior to reading => could mean that messages with an error are never read?
+
             //TODO Check if type exists (PONG message)
             String sessionKey = TextSecurePreferences.getSignalingKey(this);
             IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(websocketMessage.getMessage(), sessionKey);
@@ -249,7 +254,6 @@ public class PushService extends Service implements Listener {
                 directory.setNumber(contactTokenDetails, true);
             }
 
-            Log.d(TAG, "StartService: ackIntent; "+startService(ackIntent(this, websocketMessage)));
             Intent service = new Intent(this, SendReceiveService.class);
             service.setAction(SendReceiveService.RECEIVE_PUSH_ACTION);
             service.putExtra("message", message);

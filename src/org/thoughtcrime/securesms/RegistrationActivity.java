@@ -180,7 +180,7 @@ public class RegistrationActivity extends SherlockActivity {
       }
 
       try {
-          if(Release.DISABLE_GCM)throw new UnsupportedOperationException();
+          if(Release.DISABLE_GCM)throw new UnsupportedOperationException(); //TODO Config Flag for easier development
           GCMRegistrar.checkDevice(self);
           TextSecurePreferences.setGcmRegistered(self, true);
       } catch (UnsupportedOperationException uoe) {
