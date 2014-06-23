@@ -137,7 +137,7 @@ public class PushService extends Service implements Listener {
             if (operation == null) {
                 Log.d(TAG, "Setup timer");
                 operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
-                am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 50 * 1000, operation);
+                am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 30 * 1000, operation);
             }
         }
 
