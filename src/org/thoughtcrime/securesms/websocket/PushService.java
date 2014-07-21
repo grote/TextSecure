@@ -144,7 +144,7 @@ public class PushService extends Service implements Listener {
         if (mClient == null) {
             WakeLock clientlock = ((PowerManager) getSystemService(POWER_SERVICE))
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG+".Client");
-            mClient = new WebSocketClient(URI.create(Release.WS_URL + "?user="
+            mClient = new WebSocketClient(URI.create(Release.WS_URL + "?login="
                     + TextSecurePreferences.getLocalNumber(this) +
                     "&password=" + TextSecurePreferences.getPushServerPassword(
                     this)), this, null, clientlock);
