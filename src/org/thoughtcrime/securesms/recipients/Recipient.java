@@ -49,9 +49,9 @@ public class Recipient implements Parcelable, CanonicalRecipient {
 
   private final HashSet<RecipientModifiedListener> listeners = new HashSet<RecipientModifiedListener>();
 
-  private final String number;
-  private final long   recipientId;
+  private final long recipientId;
 
+  private String number;
   private String name;
 
   private Bitmap contactPhoto;
@@ -75,9 +75,11 @@ public class Recipient implements Parcelable, CanonicalRecipient {
 
           synchronized (Recipient.this) {
             Recipient.this.name                      = result.name;
+            Recipient.this.number                    = result.number;
             Recipient.this.contactUri                = result.contactUri;
             Recipient.this.contactPhoto              = result.avatar;
             Recipient.this.circleCroppedContactPhoto = result.croppedAvatar;
+            
             localListeners                           = (HashSet<RecipientModifiedListener>) listeners.clone();
             listeners.clear();
           }
@@ -94,12 +96,15 @@ public class Recipient implements Parcelable, CanonicalRecipient {
     });
   }
 
-  Recipient(String name, String number, long recipientId, Uri contactUri, Bitmap contactPhoto) {
-    this.number       = number;
-    this.recipientId  = recipientId;
-    this.contactUri   = contactUri;
-    this.name         = name;
-    this.contactPhoto = contactPhoto;
+  Recipient(String name, String number, long recipientId, Uri contactUri, Bitmap contactPhoto,
+            Bitmap circleCroppedContactPhoto)
+  {
+    this.number                     = number;
+    this.recipientId                = recipientId;
+    this.contactUri                 = contactUri;
+    this.name                       = name;
+    this.contactPhoto               = contactPhoto;
+    this.circleCroppedContactPhoto  = circleCroppedContactPhoto;
   }
 
   public Recipient(Parcel in) {
@@ -185,7 +190,9 @@ public class Recipient implements Parcelable, CanonicalRecipient {
   }
 
   public static Recipient getUnknownRecipient(Context context) {
-    return new Recipient("Unknown", "Unknown", -1, null, ContactPhotoFactory.getDefaultContactPhoto(context));
+    return new Recipient("Unknown", "Unknown", -1, null,
+                         ContactPhotoFactory.getDefaultContactPhoto(context),
+                         ContactPhotoFactory.getDefaultContactPhotoCropped(context));
   }
 
   @Override
