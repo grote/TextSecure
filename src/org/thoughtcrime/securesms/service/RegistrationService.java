@@ -225,7 +225,7 @@ public class RegistrationService extends Service {
       socket.createAccount(false);
 
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING, number));
-      String challenge = "111111"; //waitForChallenge();
+      waitForChallenge();
       if (TextSecurePreferences.isGcmRegistered(this)) {
         socket.verifyAccount(challenge, signalingKey, true, registrationId);
       } else {
@@ -244,11 +244,11 @@ public class RegistrationService extends Service {
       Log.w("RegistrationService", uoe);
       setState(new RegistrationState(RegistrationState.STATE_GCM_UNSUPPORTED, number));
       broadcastComplete(false);
-    }/* catch (AccountVerificationTimeoutException avte) {
+    } catch (AccountVerificationTimeoutException avte) {
       Log.w("RegistrationService", avte);
       setState(new RegistrationState(RegistrationState.STATE_TIMEOUT, number));
       broadcastComplete(false);
-    }*/ catch (IOException e) {
+    } catch (IOException e) {
       Log.w("RegistrationService", e);
       setState(new RegistrationState(RegistrationState.STATE_NETWORK_ERROR, number));
       broadcastComplete(false);

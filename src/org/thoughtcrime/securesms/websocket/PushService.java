@@ -36,11 +36,15 @@ public class PushService extends Service implements Listener {
     public static final String ACTION_CONNECT = "WS_CONNECT";
     public static final String ACTION_DISCONNECT = "WS_DISCONNECT";
     private static final String ACTION_ACKNOWLEDGE = "WS_ACKNOWLEDGE";
+    private static final int TIMEOUT = 1;
+    private static final int MILLIS = 1000;
+    private static final int ERROR_LIMIT = 11; // 2^10 * 1000ms * 1 = 1024s ~= 17min
 
     private WebSocketClient mClient;
     private final IBinder mBinder = new Binder();
     private boolean mShutDown = false;
     private  WakeLock wakelock, onMessageWakeLock;
+    private int errors = 0;
 
     public static Intent startIntent(Context context) {
         Intent i = new Intent(context, PushService.class);
@@ -191,7 +195,8 @@ public class PushService extends Service implements Listener {
 
     @Override
     public void onConnect() {
-        Log.d(TAG, "Connected to websocket");
+       errors = 0;
+       Log.d(TAG, "Connected to websocket");
     }
 
     @Override
@@ -206,8 +211,20 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onError(Exception e) {
-        Log.e(TAG, "PushService", e);
-        startService(startIntent(this));
+        if (errors < ERROR_LIMIT){
+            errors++;
+        }
+        int backoff = (1 << (errors - 1)); //Use bit-shifting for exponential calculation
+
+        Log.e(TAG, "Websocket error; Restart in "+(backoff*TIMEOUT)+" seconds", e);
+
+        PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
+        if (operation != null) {
+            operation.cancel();
+        }
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        PendingIntent startUp = PendingIntent.getService(this, 0, PushService.startIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
+        am.set(AlarmManager.RTC_WAKEUP, backoff * TIMEOUT * MILLIS ,startUp);
     }
 
     @Override
