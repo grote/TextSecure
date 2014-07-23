@@ -322,20 +322,20 @@ public class RegistrationProgressActivity extends SherlockActivity {
                          getString(R.string.RegistrationProgressActivity_this_number_is_already_registered_on_a_different));
   }
 
-  private void handleVerificationComplete() {
-    if (visible) {
-      Toast.makeText(this,
-                     R.string.RegistrationProgressActivity_registration_complete,
-                     Toast.LENGTH_LONG).show();
+    private void handleVerificationComplete() {
+        if (visible) {
+            Toast.makeText(this,
+                    R.string.RegistrationProgressActivity_registration_complete,
+                    Toast.LENGTH_LONG).show();
+        }
+        if (TextSecurePreferences.isPushRegistered(getApplicationContext())
+                && !TextSecurePreferences.isGcmRegistered(getApplicationContext())) {
+            startService(PushService.startIntent(this.getApplicationContext()));
+        }
+        shutdownService();
+        startActivity(new Intent(this, RoutingActivity.class));
+        finish();
     }
-      if(TextSecurePreferences.isPushRegistered(getApplicationContext())
-              && !TextSecurePreferences.isGcmRegistered(getApplicationContext())){
-      startService(PushService.startIntent(this.getApplicationContext()));
-  }
-    shutdownService();
-    startActivity(new Intent(this, RoutingActivity.class));
-    finish();
-  }
 
   private void handleTimerUpdate() {
     if (registrationService == null)

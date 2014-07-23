@@ -3,8 +3,10 @@ package org.thoughtcrime.securesms.websocket;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
@@ -16,6 +18,23 @@ public class NetworkReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        /**
+         * If we are GCM registered, we don't need the Broadcast receiver
+         * */
+        if (TextSecurePreferences.isGcmRegistered(context)) {
+            PackageManager pm = context.getPackageManager();
+            ComponentName compName =
+                  	      new ComponentName(context,
+                  	            NetworkReceiver.class);
+            pm.setComponentEnabledSetting(
+                   	      compName,
+                   	      PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                   	      PackageManager.DONT_KILL_APP);
+        }
+        /**
+         * This checks if we are either GCM registered or not push registered
+         * if either one is the case, don't proceed
+         * */
         if (TextSecurePreferences.isGcmRegistered(context) || !TextSecurePreferences.isPushRegistered(context)) {
             return;
         }
