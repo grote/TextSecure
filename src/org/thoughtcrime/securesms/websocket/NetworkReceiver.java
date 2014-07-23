@@ -43,7 +43,7 @@ public class NetworkReceiver extends BroadcastReceiver {
         NetworkInfo networkInfo = conn.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.getDetailedState() == NetworkInfo.DetailedState.CONNECTED) {
             Log.i(TAG, "NetworkState connected");
-            context.startService(PushService.startIntent(context.getApplicationContext()));
+            context.startService(PushService.startIntent(context));
         } else {
             Log.i(TAG, "Lost Connection");
             AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

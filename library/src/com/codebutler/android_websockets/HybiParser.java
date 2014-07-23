@@ -257,7 +257,7 @@ public class HybiParser {
     }
 
     public void ping(String message) {
-        mClient.send(frame(message, OP_PING, -1));
+        mClient.sendFrame(frame(message, OP_PING, -1));
     }
 
     public void close(int code, String reason) {
@@ -316,6 +316,7 @@ public class HybiParser {
         } else if (opcode == OP_PONG) {
             String message = encode(payload);
             // FIXME: Fire callback...
+            mClient.getListener().onPong(message);
             Log.d(TAG, "Got pong! " + message);
         }
     }

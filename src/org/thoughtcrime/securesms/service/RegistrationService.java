@@ -69,7 +69,7 @@ public class RegistrationService extends Service {
   public static final String CHALLENGE_EXTRA        = "CAAChallenge";
   public static final String GCM_REGISTRATION_ID    = "GCMRegistrationId";
 
-  private static final long REGISTRATION_TIMEOUT_MILLIS = 2000; //TODO For quicker testing
+  private static final long REGISTRATION_TIMEOUT_MILLIS = 120000;
 
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Binder          binder   = new RegistrationServiceBinder();

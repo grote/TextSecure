@@ -1,6 +1,8 @@
 package org.thoughtcrime.securesms.websocket;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -10,11 +12,13 @@ import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.codebutler.android_websockets.WebSocketClient;
 import com.codebutler.android_websockets.WebSocketClient.Listener;
 
+import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.Release;
 import org.thoughtcrime.securesms.service.SendReceiveService;
 import org.thoughtcrime.securesms.util.TextSecurePreferences;
@@ -80,12 +84,14 @@ public class PushService extends Service implements Listener {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Creating Service " + this.toString());
+        doNotification("Created Service", "onCreate() has been called on the service");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "Destroying Service " + this.toString());
+        doNotification("Destroy Service", "onDestroy() has been called on the service");
         if (mClient != null && mClient.isConnected()) mClient.disconnect();
     }
 
@@ -163,7 +169,9 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Connect Client");
             }
             if (ACTION_PING.equals(intent.getAction())) {
-                if (mClient.isConnected()) mClient.send("{\"type\":2}"); //TODO FIX this with gson
+                if (mClient.isConnected()){
+                    mClient.ping();
+                }
                 else {
                     Log.w(TAG, "Ping failed, client not connected");
                 }
@@ -196,11 +204,18 @@ public class PushService extends Service implements Listener {
     @Override
     public void onConnect() {
        errors = 0;
+        doNotification("Connected Websocket", "Websocket onConnect() called");
        Log.d(TAG, "Connected to websocket");
     }
 
     @Override
+    public void onPong(String message) {
+        Log.d(TAG, "Got Pong: "+message);
+    }
+
+    @Override
     public synchronized void onDisconnect(int code, String reason) {
+        doNotification("Websocket disconnect", "onDisconnect() has been called");
         Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
         if (!mShutDown) {
             startService(startIntent(this));
@@ -211,24 +226,28 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onError(Exception e) {
+        doNotification("Websocket error", "onError() has been called");
         if (errors < ERROR_LIMIT){
             errors++;
         }
         int backoff = (1 << (errors - 1)); //Use bit-shifting for exponential calculation
 
-        Log.e(TAG, "Websocket error; Restart in "+(backoff*TIMEOUT)+" seconds", e);
+        Log.e(TAG, "Websocket error; Restart in "+(backoff*TIMEOUT)+" seconds");
 
-        PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE);
         if (operation != null) {
             operation.cancel();
+            am.cancel(operation);
+
         }
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         PendingIntent startUp = PendingIntent.getService(this, 0, PushService.startIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
-        am.set(AlarmManager.RTC_WAKEUP, backoff * TIMEOUT * MILLIS ,startUp);
+        am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (backoff * TIMEOUT * MILLIS) ,startUp);
     }
 
     @Override
     public synchronized void onMessage(String data) {
+        doNotification("Websocket message", "onMessage() has been called");
         Log.d(TAG, "onMessageWakeLock b4acquire: " + onMessageWakeLock);
         if(onMessageWakeLock != null && !onMessageWakeLock.isHeld())
             onMessageWakeLock.acquire();
@@ -250,15 +269,10 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Not push registered!");
                 return;
             }
-            if (data.contains("type")) {
-                return;
-            }
-            Log.d(TAG, "REACHED");
             WebsocketMessage websocketMessage = WebsocketMessage.fromJson(data);
 
             Log.d(TAG, "StartService: ackIntent; "+startService(ackIntent(this, websocketMessage))); //TODO This acks the message prior to reading => could mean that messages with an error are never read?
 
-            //TODO Check if type exists (PONG message)
             String sessionKey = TextSecurePreferences.getSignalingKey(this);
             IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(websocketMessage.getMessage(), sessionKey);
             IncomingPushMessage message = encryptedMessage.getIncomingPushMessage();
@@ -294,7 +308,7 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onMessage(byte[] arg0) {
-        // TODO Auto-generated method stub
+        Log.d(TAG, "Got byte Message: "+ new String(arg0));
 
     }
 
@@ -308,6 +322,29 @@ public class PushService extends Service implements Listener {
         }
 
         return isActiveNumber;
+    }
+
+    private int notificationId = 0;
+    private void doNotification(String title, String text){
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                new Intent(),  //Dummy Intent do nothing
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Notification n = new NotificationCompat.Builder(this)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setTicker("PushService!")
+                .setSmallIcon(R.drawable.icon_notification)
+                .setDefaults(Notification.DEFAULT_VIBRATE)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
+
+        NotificationManager nm = (NotificationManager) this
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(notificationId++, n);
     }
 }
 
