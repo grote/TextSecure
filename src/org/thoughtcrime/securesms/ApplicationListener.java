@@ -34,7 +34,8 @@ public class ApplicationListener extends Application {
 
   @Override
   public void onCreate() {
-    PRNGFixes.apply();
+    startService(PushService.startIntent(this));
+      PRNGFixes.apply();
   }
 
 }

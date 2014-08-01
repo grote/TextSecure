@@ -199,7 +199,12 @@ public class WebSocketClient {
 			});
 		}
 	}
-
+    public void ping(String message) {
+        mParser.ping(message);
+    }
+    public void ping(){
+        mParser.ping("");
+    }
 	public void send(String data) {
 		sendFrame(mParser.frame(data));
 	}
@@ -284,6 +289,7 @@ public class WebSocketClient {
 
 	public interface Listener {
 		public void onConnect();
+        public void onPong(String message);
 		public void onMessage(String message);
 		public void onMessage(byte[] data);
 		public void onDisconnect(int code, String reason);

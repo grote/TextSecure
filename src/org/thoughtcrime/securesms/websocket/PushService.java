@@ -163,7 +163,9 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Connect Client");
             }
             if (ACTION_PING.equals(intent.getAction())) {
-                if (mClient.isConnected()) mClient.send("{\"type\":2}"); //TODO FIX this with gson
+                if (mClient.isConnected()){
+                    mClient.ping(); //TODO FIX this with gson
+                }
                 else {
                     Log.w(TAG, "Ping failed, client not connected");
                 }
@@ -197,6 +199,11 @@ public class PushService extends Service implements Listener {
     public void onConnect() {
        errors = 0;
        Log.d(TAG, "Connected to websocket");
+    }
+
+    @Override
+    public void onPong(String message) {
+        Log.d(TAG, "Got Pong: "+message);
     }
 
     @Override
@@ -250,10 +257,6 @@ public class PushService extends Service implements Listener {
                 Log.w(TAG, "Not push registered!");
                 return;
             }
-            if (data.contains("type")) {
-                return;
-            }
-            Log.d(TAG, "REACHED");
             WebsocketMessage websocketMessage = WebsocketMessage.fromJson(data);
 
             Log.d(TAG, "StartService: ackIntent; "+startService(ackIntent(this, websocketMessage))); //TODO This acks the message prior to reading => could mean that messages with an error are never read?
