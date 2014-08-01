@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
           package="org.thoughtcrime.securesms"
-      android:versionCode="2112"
-      android:versionName="2.1.1b2">
+      android:versionCode="2113"
+      android:versionName="2.1.1b3">
 
     <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="19"/>
 
