@@ -425,7 +425,8 @@ public class PushServiceSocket {
     }
   }
 
-  private TrustManager[] initializeTrustManager(TrustStore trustStore) {
+  //TODO Can this be changed to public static?
+  public static TrustManager[] initializeTrustManager(TrustStore trustStore) {
     try {
       InputStream keyStoreInputStream = trustStore.getKeyStoreInputStream();
       KeyStore    keyStore            = KeyStore.getInstance("BKS");

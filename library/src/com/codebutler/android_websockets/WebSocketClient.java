@@ -10,6 +10,7 @@ import org.apache.http.*;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.BasicNameValuePair;
+import org.whispersystems.textsecure.push.PushServiceSocket;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
@@ -29,8 +30,9 @@ import java.util.List;
 
 public class WebSocketClient {
 	private static final String TAG = "WebSocketClient";
+    private static final boolean ENFORCE_SSL = false; //TODO Change to true after developing
 
-	private URI                      mURI;
+    private URI                      mURI;
 	private Listener                 mListener;
 	private Socket                   mSocket;
 	private Thread                   mThread;
@@ -40,6 +42,7 @@ public class WebSocketClient {
 	private HybiParser               mParser;
 	private boolean                  mConnected;
 	private WakeLock				 mWakeLock;
+    private final TrustManager[] trustManagers;
 
 	private final Object mSendLock = new Object();
 
@@ -49,19 +52,7 @@ public class WebSocketClient {
 		sTrustManagers = tm;
 	}
 
-	public WebSocketClient(URI uri, Listener listener, List<BasicNameValuePair> extraHeaders) {
-		mURI          = uri;
-		mListener     = listener;
-		mExtraHeaders = extraHeaders;
-		mConnected    = false;
-		mParser       = new HybiParser(this);
-
-		mHandlerThread = new HandlerThread("websocket-thread");
-		mHandlerThread.start();
-		mHandler = new Handler(mHandlerThread.getLooper());
-	}
-
-	public WebSocketClient(URI uri, Listener listener, List<BasicNameValuePair> extraHeaders, WakeLock wakelock) {
+	public WebSocketClient(URI uri, Listener listener, List<BasicNameValuePair> extraHeaders, WakeLock wakelock, PushServiceSocket.TrustStore trustStore) {
 		mURI          = uri;
 		mListener     = listener;
 		mExtraHeaders = extraHeaders;
@@ -72,6 +63,7 @@ public class WebSocketClient {
 		mHandlerThread.start();
 		mHandler = new Handler(mHandlerThread.getLooper());
 		mWakeLock = wakelock;
+        trustManagers = PushServiceSocket.initializeTrustManager(trustStore);
 	}
 
 	public Listener getListener() {
@@ -101,7 +93,10 @@ public class WebSocketClient {
 					String originScheme = mURI.getScheme().equals("wss") ? "https" : "http";
 					URI origin = new URI(originScheme, "//" + mURI.getHost(), null);
 
-					SocketFactory factory = (mURI.getScheme().equals("wss") || mURI.getScheme().equals("https")) ? getSSLSocketFactory() : SocketFactory.getDefault();
+                    SSLContext context = SSLContext.getInstance("TLS");
+                    context.init(null, trustManagers, null);
+
+					SocketFactory factory = (ENFORCE_SSL || mURI.getScheme().equals("wss") || mURI.getScheme().equals("https")) ? context.getSocketFactory() : SocketFactory.getDefault();
 
                     try{
                         mSocket = factory.createSocket(mURI.getHost(), port);
@@ -291,7 +286,7 @@ public class WebSocketClient {
 
 	public interface Listener {
 		public void onConnect();
-        public void onPong(String message);
+    public void onPong(String message);
 		public void onMessage(String message);
 		public void onMessage(byte[] data);
 		public void onDisconnect(int code, String reason);

@@ -94,26 +94,19 @@ public class PushService extends Service implements Listener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        Log.d(TAG, "WakeLock b4acquire: "+wakelock);
         if(wakelock != null && !wakelock.isHeld())
             wakelock.acquire();
-        else if(wakelock != null){
-            Log.d(TAG, "Wakelock still held at onStartcommand!");
-        }
-        else {
+        else if (wakelock == null){
             wakelock = ((PowerManager) getSystemService(POWER_SERVICE))
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
             wakelock.acquire();
         }
-        Log.d(TAG, "WakeLock acquire: "+wakelock.toString());
         Log.d(TAG, "PushService start command: " + ((intent == null) ? "null" : intent.toUri(Intent.URI_INTENT_SCHEME)));
         mShutDown = false;
 
         if (!TextSecurePreferences.isPushRegistered(getApplicationContext()) || TextSecurePreferences.isGcmRegistered(getApplicationContext())) {
             Log.i(TAG, "PushService not registered");
             wakelock.release();
-            Log.d(TAG, "WakeLock release-nr: " + wakelock.toString());
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -128,21 +121,18 @@ public class PushService extends Service implements Listener {
                 if (networkInfo.getDetailedState() != NetworkInfo.DetailedState.CONNECTED) {
                     Log.w(TAG, "Not connected, reset");
                     wakelock.release();
-                    Log.d(TAG, "WakeLock release-nc: " + wakelock.toString());
                     stopSelf();
                     return START_NOT_STICKY;
                 }
             } else {
                 Log.w(TAG, "No ActiveNetwork, reset");
                 wakelock.release();
-                Log.d(TAG, "WakeLock release-no_ac: " + wakelock.toString());
                 stopSelf();
                 return START_NOT_STICKY;
             }
             AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             PendingIntent operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_NO_CREATE);
             if (operation == null) {
-                Log.d(TAG, "Setup timer");
                 operation = PendingIntent.getService(this, 0, PushService.pingIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
                 am.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 30 * 1000, operation);
             }
@@ -151,10 +141,9 @@ public class PushService extends Service implements Listener {
         if (mClient == null) {
             WakeLock clientlock = ((PowerManager) getSystemService(POWER_SERVICE))
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG+".Client");
-            mClient = new WebSocketClient(URI.create(Release.WS_URL + "?login="
-                    + TextSecurePreferences.getLocalNumber(this) +
-                    "&password=" + TextSecurePreferences.getPushServerPassword(
-                    this)), this, null, clientlock);
+            mClient = WebSocketClientFactory.create(TextSecurePreferences.getLocalNumber(this),
+                            TextSecurePreferences.getPushServerPassword(this),
+                            this, null, clientlock, this);
             Log.w(TAG, "mClient created");
         }
         if (intent != null) {
@@ -182,7 +171,6 @@ public class PushService extends Service implements Listener {
         }
 
         wakelock.release();
-        Log.d(TAG, "WakeLock release: "+wakelock.toString());
         return START_STICKY;
     }
 
@@ -233,7 +221,6 @@ public class PushService extends Service implements Listener {
         if (operation != null) {
             operation.cancel();
             am.cancel(operation);
-
         }
         PendingIntent startUp = PendingIntent.getService(this, 0, PushService.startIntent(this), PendingIntent.FLAG_UPDATE_CURRENT);
         am.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (backoff * TIMEOUT * MILLIS) ,startUp);
@@ -241,18 +228,13 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onMessage(String data) {
-        Log.d(TAG, "onMessageWakeLock b4acquire: " + onMessageWakeLock);
         if(onMessageWakeLock != null && !onMessageWakeLock.isHeld())
             onMessageWakeLock.acquire();
-        else if(onMessageWakeLock != null){
-            Log.d(TAG, "onMessageWakeLock still held at onStartcommand!");
-        }
-        else {
+        else if(onMessageWakeLock == null) {
             onMessageWakeLock = ((PowerManager) getSystemService(POWER_SERVICE))
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG+".onMessage");
             onMessageWakeLock.acquire();
         }
-        Log.d(TAG, "onMessageWakeLock acquire: " + onMessageWakeLock.toString());
         try {
             Log.w(TAG, "onMessage: " + data);
             if (Util.isEmpty(data)) {
@@ -281,7 +263,7 @@ public class PushService extends Service implements Listener {
             Intent service = new Intent(this, SendReceiveService.class);
             service.setAction(SendReceiveService.RECEIVE_PUSH_ACTION);
             service.putExtra("message", message);
-            Log.d(TAG, "StartService: message; " + startService(service));
+            startService(service);
         } catch (IOException e) {
             Log.w(TAG, e);
         } catch (InvalidVersionException e) {
@@ -291,18 +273,12 @@ public class PushService extends Service implements Listener {
         }finally {
             if(onMessageWakeLock != null && onMessageWakeLock.isHeld()) {
                 onMessageWakeLock.release();
-                Log.d(TAG, "onMessageWakeLock release: "+onMessageWakeLock.toString());
-            }else {
-                Log.d(TAG, "onMessageWakeLock not held!" );
             }
         }
-        Log.d(TAG, "EOF onMessageWakeLock: "+onMessageWakeLock.toString());
     }
 
     @Override
     public synchronized void onMessage(byte[] arg0) {
-        Log.d(TAG, "Got byte Message: "+ new String(arg0));
-
     }
 
     private boolean isActiveNumber(Context context, String e164number) {
@@ -319,4 +295,3 @@ public class PushService extends Service implements Listener {
 
 
 }
-

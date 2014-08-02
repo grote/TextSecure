@@ -317,7 +317,6 @@ public class HybiParser {
             String message = encode(payload);
             // FIXME: Fire callback...
             mClient.getListener().onPong(message);
-            Log.d(TAG, "Got pong! " + message);
         }
     }
 
