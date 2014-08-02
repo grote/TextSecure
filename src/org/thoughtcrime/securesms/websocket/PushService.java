@@ -12,7 +12,6 @@ import android.net.NetworkInfo;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.codebutler.android_websockets.WebSocketClient;
@@ -84,14 +83,12 @@ public class PushService extends Service implements Listener {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Creating Service " + this.toString());
-        doNotification("Created Service", "onCreate() has been called on the service");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "Destroying Service " + this.toString());
-        doNotification("Destroy Service", "onDestroy() has been called on the service");
         if (mClient != null && mClient.isConnected()) mClient.disconnect();
     }
 
@@ -110,7 +107,7 @@ public class PushService extends Service implements Listener {
             wakelock.acquire();
         }
         Log.d(TAG, "WakeLock acquire: "+wakelock.toString());
-        Log.d(TAG, "PushService start command: " + ((intent == null) ? "null" : intent.toUri(0)));
+        Log.d(TAG, "PushService start command: " + ((intent == null) ? "null" : intent.toUri(Intent.URI_INTENT_SCHEME)));
         mShutDown = false;
 
         if (!TextSecurePreferences.isPushRegistered(getApplicationContext()) || TextSecurePreferences.isGcmRegistered(getApplicationContext())) {
@@ -204,7 +201,6 @@ public class PushService extends Service implements Listener {
     @Override
     public void onConnect() {
        errors = 0;
-        doNotification("Connected Websocket", "Websocket onConnect() called");
        Log.d(TAG, "Connected to websocket");
     }
 
@@ -215,7 +211,6 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onDisconnect(int code, String reason) {
-        doNotification("Websocket disconnect", "onDisconnect() has been called");
         Log.d(TAG, String.format("Disconnected! Code: %d Reason: %s", code, reason));
         if (!mShutDown) {
             startService(startIntent(this));
@@ -226,7 +221,6 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onError(Exception e) {
-        doNotification("Websocket error", "onError() has been called");
         if (errors < ERROR_LIMIT){
             errors++;
         }
@@ -247,7 +241,6 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onMessage(String data) {
-        doNotification("Websocket message", "onMessage() has been called");
         Log.d(TAG, "onMessageWakeLock b4acquire: " + onMessageWakeLock);
         if(onMessageWakeLock != null && !onMessageWakeLock.isHeld())
             onMessageWakeLock.acquire();
@@ -324,27 +317,6 @@ public class PushService extends Service implements Listener {
         return isActiveNumber;
     }
 
-    private int notificationId = 0;
-    private void doNotification(String title, String text){
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                new Intent(),  //Dummy Intent do nothing
-                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification n = new NotificationCompat.Builder(this)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setTicker("PushService!")
-                .setSmallIcon(R.drawable.icon_notification)
-                .setDefaults(Notification.DEFAULT_VIBRATE)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-                .build();
-
-        NotificationManager nm = (NotificationManager) this
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify(notificationId++, n);
-    }
 }
 

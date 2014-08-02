@@ -18,16 +18,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockActivity;
-import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.i18n.phonenumbers.AsYouTypeFormatter;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 
-import org.thoughtcrime.securesms.websocket.NetworkReceiver;
-import org.whispersystems.textsecure.crypto.MasterSecret;
-import org.thoughtcrime.securesms.util.TextSecurePreferences;
 import org.thoughtcrime.securesms.util.Dialogs;
+import org.thoughtcrime.securesms.util.TextSecurePreferences;
+import org.whispersystems.textsecure.crypto.MasterSecret;
 import org.whispersystems.textsecure.util.PhoneNumberFormatter;
 import org.whispersystems.textsecure.util.Util;
 
@@ -179,15 +179,17 @@ public class RegistrationActivity extends SherlockActivity {
         return;
       }
 
-      try {
-          if(Release.DISABLE_GCM)throw new UnsupportedOperationException(); //TODO Config Flag for easier development
-          GCMRegistrar.checkDevice(self);
-          TextSecurePreferences.setGcmRegistered(self, true);
-      } catch (UnsupportedOperationException uoe) {
-          Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket", uoe);
-          TextSecurePreferences.setGcmRegistered(self, false);
-      }
+      int gcmStatus = GooglePlayServicesUtil.isGooglePlayServicesAvailable(self);
 
+      if (!Release.DISABLE_GCM || gcmStatus != ConnectionResult.SUCCESS) {
+        if (GooglePlayServicesUtil.isUserRecoverableError(gcmStatus)) {
+          GooglePlayServicesUtil.getErrorDialog(gcmStatus, self, 9000).show();
+          TextSecurePreferences.setGcmRegistered(self, true);
+        } else {
+           Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket");
+          TextSecurePreferences.setGcmRegistered(self, false);
+        }
+      }
 
       AlertDialog.Builder dialog = new AlertDialog.Builder(self);
       dialog.setMessage(String.format(getString(R.string.RegistrationActivity_we_will_now_verify_that_the_following_number_is_associated_with_your_device_s),
