@@ -344,9 +344,9 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredSherlockPr
           Context           context = ApplicationPreferencesActivity.this;
           PushServiceSocket socket  = PushServiceSocketFactory.create(context);
 
+          socket.unregisterGcmId(); //TODO How to unregister a Non-GCM Account
+         if( TextSecurePreferences.isGcmRegistered(context)){
 
-         if(true || TextSecurePreferences.isGcmRegistered(context)){ //TODO How to unregister a Non-GCM Account
-             socket.unregisterGcmId();
              GoogleCloudMessaging.getInstance(context).unregister();
           }
 

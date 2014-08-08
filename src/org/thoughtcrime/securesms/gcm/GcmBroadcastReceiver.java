@@ -37,8 +37,8 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
         if (Util.isEmpty(data))
           return;
 
-        if (!TextSecurePreferences.isPushRegistered(context)) {
-          Log.w(TAG, "Not push registered!");
+        if (!TextSecurePreferences.isGcmRegistered(context)) {
+          Log.w(TAG, "Not GCM registered!");
           return;
         }
 

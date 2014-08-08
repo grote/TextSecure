@@ -274,7 +274,7 @@ public class RegistrationService extends Service {
     TextSecurePreferences.setVerifying(this, verifying);
 
     if (verifying) {
-      TextSecurePreferences.setPushRegistered(this, false);
+      TextSecurePreferences.setPushRegistered(this, false); //TODO Need to set both booleans here?
     }
   }
 

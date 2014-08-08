@@ -181,7 +181,7 @@ public class RegistrationActivity extends SherlockActivity {
 
       int gcmStatus = GooglePlayServicesUtil.isGooglePlayServicesAvailable(self);
 
-      if (!Release.DISABLE_GCM || gcmStatus != ConnectionResult.SUCCESS) {
+      if (gcmStatus != ConnectionResult.SUCCESS) {
         if (GooglePlayServicesUtil.isUserRecoverableError(gcmStatus)) {
           GooglePlayServicesUtil.getErrorDialog(gcmStatus, self, 9000).show();
           TextSecurePreferences.setGcmRegistered(self, true);
@@ -189,6 +189,10 @@ public class RegistrationActivity extends SherlockActivity {
            Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket");
           TextSecurePreferences.setGcmRegistered(self, false);
         }
+      }else if(gcmStatus == ConnectionResult.SUCCESS){
+          TextSecurePreferences.setGcmRegistered(self, true);
+      }else {
+          TextSecurePreferences.setGcmRegistered(self, false);
       }
 
       AlertDialog.Builder dialog = new AlertDialog.Builder(self);
