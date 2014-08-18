@@ -346,7 +346,6 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredSherlockPr
 
           socket.unregisterGcmId(); //TODO How to unregister a Non-GCM Account
          if( TextSecurePreferences.isGcmRegistered(context)){
-
              GoogleCloudMessaging.getInstance(context).unregister();
           }
 

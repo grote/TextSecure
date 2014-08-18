@@ -20,11 +20,6 @@ import android.util.SparseArray;
 import android.view.View;
 
 import com.google.thoughtcrimegson.Gson;
-import com.google.thoughtcrimegson.GsonBuilder;
-import com.google.thoughtcrimegson.JsonDeserializationContext;
-import com.google.thoughtcrimegson.JsonDeserializer;
-import com.google.thoughtcrimegson.JsonElement;
-import com.google.thoughtcrimegson.JsonParseException;
 import com.google.thoughtcrimegson.reflect.TypeToken;
 
 import org.thoughtcrime.securesms.R;
@@ -299,7 +294,7 @@ public class Emoji {
   private static class EmojiLRU {
     private static       SharedPreferences     prefs                = null;
     private static       LinkedHashSet<String> recentlyUsed         = null;
-    private static final String                EMOJI_LRU_PREFERENCE = "pref_popular_emoji";
+    private static final String                EMOJI_LRU_PREFERENCE = "pref_recent_emoji";
     private static final int                   EMOJI_LRU_SIZE       = 50;
 
     private static void initializeCache(Context context) {
@@ -310,16 +305,7 @@ public class Emoji {
       String serialized = prefs.getString(EMOJI_LRU_PREFERENCE, "[]");
       Type type = new TypeToken<LinkedHashSet<String>>() {
       }.getType();
-      JsonDeserializer<String> backwardsDeserializer = new JsonDeserializer<String>() {
-        @Override
-        public String deserialize(JsonElement jsonElement, Type type,
-                                  JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
-          return jsonElement.getAsString().replace(".png", "");
-        }
-      };
-
-      recentlyUsed = new GsonBuilder().registerTypeAdapter(String.class, backwardsDeserializer)
-                                      .create().fromJson(serialized, type);
+      recentlyUsed = new Gson().fromJson(serialized, type);
     }
 
     public static String[] getRecentlyUsed(Context context) {
@@ -346,11 +332,12 @@ public class Emoji {
         iterator.remove();
       }
 
+      final LinkedHashSet<String> latestRecentlyUsed = new LinkedHashSet<String>(recentlyUsed);
       new AsyncTask<Void, Void, Void>() {
 
         @Override
         protected Void doInBackground(Void... params) {
-          String serialized = new Gson().toJson(recentlyUsed);
+          String serialized = new Gson().toJson(latestRecentlyUsed);
           prefs.edit()
               .putString(EMOJI_LRU_PREFERENCE, serialized)
               .apply();
