@@ -176,7 +176,6 @@ public class RoutingActivity extends PassphraseRequiredSherlockActivity {
 
   private void scheduleRefreshActions() {
     if (TextSecurePreferences.isPushRegistered(this) &&
-        TextSecurePreferences.isGcmRegistered(this) &&
         TextSecurePreferences.getGcmRegistrationId(this) == null)
     {
       Intent intent = new Intent(this, GcmRegistrationService.class);

@@ -181,17 +181,24 @@ public class RegistrationActivity extends SherlockActivity {
 
       int gcmStatus = GooglePlayServicesUtil.isGooglePlayServicesAvailable(self);
 
-      if (gcmStatus != ConnectionResult.SUCCESS) {
+      /**
+       * This function checks if GCM is available. If the error is userRecoverable,
+       * that means that either Play is not installed or outdated.
+       *
+       * If that is the case we set GCM to false, but periodically check in GcmRegistrationService
+       */
+
+      if ( !Release.DISABLE_GCM && gcmStatus != ConnectionResult.SUCCESS) {
         if (GooglePlayServicesUtil.isUserRecoverableError(gcmStatus)) {
           GooglePlayServicesUtil.getErrorDialog(gcmStatus, self, 9000).show();
-          TextSecurePreferences.setGcmRegistered(self, true);
         } else {
            Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket");
-          TextSecurePreferences.setGcmRegistered(self, false);
         }
-      }else if(gcmStatus == ConnectionResult.SUCCESS){
+        TextSecurePreferences.setGcmRegistered(self, false);
+      }else if(!Release.DISABLE_GCM && gcmStatus == ConnectionResult.SUCCESS){
           TextSecurePreferences.setGcmRegistered(self, true);
       }else {
+          Log.w("RegistrationActivity", "GCM not supported. Fallback to WebSocket");
           TextSecurePreferences.setGcmRegistered(self, false);
       }
 
