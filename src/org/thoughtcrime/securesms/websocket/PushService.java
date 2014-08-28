@@ -252,7 +252,7 @@ public class PushService extends Service implements Listener {
             IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(websocketMessage.getMessage(), sessionKey);
             IncomingPushMessage message = encryptedMessage.getIncomingPushMessage();
 
-            if (!isActiveNumber(this, message.getSource())) {
+            if (!org.thoughtcrime.securesms.util.Util.isActiveNumber(this, message.getSource())) {
                 Directory directory = Directory.getInstance(this);
                 ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
                 contactTokenDetails.setNumber(message.getSource());
@@ -279,18 +279,6 @@ public class PushService extends Service implements Listener {
 
     @Override
     public synchronized void onMessage(byte[] arg0) {
-    }
-
-    private boolean isActiveNumber(Context context, String e164number) {
-        boolean isActiveNumber;
-
-        try {
-            isActiveNumber = Directory.getInstance(context).isActiveNumber(e164number);
-        } catch (NotInDirectoryException e) {
-            isActiveNumber = false;
-        }
-
-        return isActiveNumber;
     }
 
 

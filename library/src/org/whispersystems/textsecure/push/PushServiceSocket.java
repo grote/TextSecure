@@ -88,7 +88,7 @@ public class PushServiceSocket {
     this.serviceUrl    = serviceUrl;
     this.localNumber   = localNumber;
     this.password      = password;
-    this.trustManagers = initializeTrustManager(trustStore);
+    this.trustManagers = Util.initializeTrustManager(trustStore);
   }
 
   public void createAccount(boolean voice) throws IOException {
@@ -422,29 +422,6 @@ public class PushServiceSocket {
       return "Basic " + Base64.encodeBytes((localNumber + ":" + password).getBytes("UTF-8"));
     } catch (UnsupportedEncodingException e) {
       throw new AssertionError(e);
-    }
-  }
-
-  //TODO Can this be changed to public static?
-  public static TrustManager[] initializeTrustManager(TrustStore trustStore) {
-    try {
-      InputStream keyStoreInputStream = trustStore.getKeyStoreInputStream();
-      KeyStore    keyStore            = KeyStore.getInstance("BKS");
-
-      keyStore.load(keyStoreInputStream, trustStore.getKeyStorePassword().toCharArray());
-
-      TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
-      trustManagerFactory.init(keyStore);
-
-      return BlacklistingTrustManager.createFor(trustManagerFactory.getTrustManagers());
-    } catch (KeyStoreException kse) {
-      throw new AssertionError(kse);
-    } catch (CertificateException e) {
-      throw new AssertionError(e);
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    } catch (IOException ioe) {
-      throw new AssertionError(ioe);
     }
   }
 

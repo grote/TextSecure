@@ -27,6 +27,8 @@ import android.text.SpannableString;
 import android.text.style.StyleSpan;
 import android.util.Log;
 
+import org.whispersystems.textsecure.directory.Directory;
+import org.whispersystems.textsecure.directory.NotInDirectoryException;
 import org.whispersystems.textsecure.util.InvalidNumberException;
 import org.whispersystems.textsecure.util.PhoneNumberFormatter;
 
@@ -42,6 +44,18 @@ import ws.com.google.android.mms.pdu.CharacterSets;
 import ws.com.google.android.mms.pdu.EncodedStringValue;
 
 public class Util {
+
+  public static boolean isActiveNumber(Context context, String e164number) {
+    boolean isActiveNumber;
+
+    try {
+        isActiveNumber = Directory.getInstance(context).isActiveNumber(e164number);
+    } catch (NotInDirectoryException e) {
+        isActiveNumber = false;
+    }
+
+    return isActiveNumber;
+  }
 
   public static String[] splitString(String string, int maxLength) {
     int count = string.length() / maxLength;

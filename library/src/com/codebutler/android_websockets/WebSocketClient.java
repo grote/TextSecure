@@ -11,6 +11,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.BasicNameValuePair;
 import org.whispersystems.textsecure.push.PushServiceSocket;
+import org.whispersystems.textsecure.util.Util;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
@@ -48,7 +49,7 @@ public class WebSocketClient {
 
 	private static TrustManager[] sTrustManagers;
 
-	public static void setTrustManagers(TrustManager[] tm) {
+	private static void setTrustManagers(TrustManager[] tm) {
 		sTrustManagers = tm;
 	}
 
@@ -63,7 +64,7 @@ public class WebSocketClient {
 		mHandlerThread.start();
 		mHandler = new Handler(mHandlerThread.getLooper());
 		mWakeLock = wakelock;
-        trustManagers = PushServiceSocket.initializeTrustManager(trustStore);
+        trustManagers = Util.initializeTrustManager(trustStore);
 	}
 
 	public Listener getListener() {
