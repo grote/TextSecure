@@ -193,9 +193,13 @@ public class RegistrationService extends Service {
       socket.createAccount(false);
 
       setState(new RegistrationState(RegistrationState.STATE_VERIFYING, number));
+      //String challenge = "111111"; if(false)throw new AccountVerificationTimeoutException();
       String challenge = waitForChallenge();
-      socket.verifyAccount(challenge, signalingKey, true, registrationId);
-
+      if (TextSecurePreferences.isGcmRegistered(this)) {
+        socket.verifyAccount(challenge, signalingKey, true, registrationId);
+      } else {
+        socket.verifyAccount(challenge, signalingKey, true, registrationId, true);
+      }
       handleCommonRegistration(masterSecret, socket, number);
       markAsVerified(number, password, signalingKey);
 
@@ -232,11 +236,11 @@ public class RegistrationService extends Service {
     socket.registerPreKeys(identityKey, lastResort, records);
 
     setState(new RegistrationState(RegistrationState.STATE_GCM_REGISTERING, number));
-
-    String gcmRegistrationId = GoogleCloudMessaging.getInstance(this).register("312334754206");
-    TextSecurePreferences.setGcmRegistrationId(this, gcmRegistrationId);
-    socket.registerGcmId(gcmRegistrationId);
-
+ 	if(TextSecurePreferences.isGcmRegistered(this)){
+    	String gcmRegistrationId = GoogleCloudMessaging.getInstance(this).register("312334754206");
+    	TextSecurePreferences.setGcmRegistrationId(this, gcmRegistrationId);
+    	socket.registerGcmId(gcmRegistrationId);
+	}
     DirectoryHelper.refreshDirectory(this, socket, number);
 
     DirectoryRefreshListener.schedule(this);
@@ -268,7 +272,7 @@ public class RegistrationService extends Service {
     TextSecurePreferences.setVerifying(this, verifying);
 
     if (verifying) {
-      TextSecurePreferences.setPushRegistered(this, false);
+      TextSecurePreferences.setPushRegistered(this, false); //TODO Need to set both booleans here?
     }
   }
 

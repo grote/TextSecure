@@ -332,7 +332,8 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredSherlockPr
             break;
           case SUCCESS:
             ((CheckBoxPreference)preference).setChecked(false);
-            TextSecurePreferences.setPushRegistered(ApplicationPreferencesActivity.this, false);
+              TextSecurePreferences.setPushRegistered(ApplicationPreferencesActivity.this, false);
+              TextSecurePreferences.setGcmRegistered(ApplicationPreferencesActivity.this, false);
             break;
         }
       }
@@ -343,8 +344,10 @@ public class ApplicationPreferencesActivity extends PassphraseRequiredSherlockPr
           Context           context = ApplicationPreferencesActivity.this;
           PushServiceSocket socket  = PushServiceSocketFactory.create(context);
 
-          socket.unregisterGcmId();
-          GoogleCloudMessaging.getInstance(context).unregister();
+          socket.unregisterGcmId(); //TODO How to unregister a Non-GCM Account
+         if( TextSecurePreferences.isGcmRegistered(context)){
+             GoogleCloudMessaging.getInstance(context).unregister();
+          }
 
           return SUCCESS;
         } catch (AuthorizationFailedException afe) {

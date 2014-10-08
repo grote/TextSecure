@@ -10,20 +10,49 @@ import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.EditText;
 
+import org.whispersystems.textsecure.push.PushServiceSocket;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+
 public class Util {
+    public static TrustManager[] initializeTrustManager(PushServiceSocket.TrustStore trustStore) {
+        try {
+            InputStream keyStoreInputStream = trustStore.getKeyStoreInputStream();
+            KeyStore keyStore            = KeyStore.getInstance("BKS");
+
+            keyStore.load(keyStoreInputStream, trustStore.getKeyStorePassword().toCharArray());
+
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("X509");
+            trustManagerFactory.init(keyStore);
+
+            return BlacklistingTrustManager.createFor(trustManagerFactory.getTrustManagers());
+        } catch (KeyStoreException kse) {
+            throw new AssertionError(kse);
+        } catch (CertificateException e) {
+            throw new AssertionError(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError(e);
+        } catch (IOException ioe) {
+            throw new AssertionError(ioe);
+        }
+    }
 
   public static byte[] combine(byte[]... elements) {
     try {

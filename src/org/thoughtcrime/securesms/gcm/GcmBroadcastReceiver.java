@@ -37,8 +37,8 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
         if (Util.isEmpty(data))
           return;
 
-        if (!TextSecurePreferences.isPushRegistered(context)) {
-          Log.w(TAG, "Not push registered!");
+        if (!TextSecurePreferences.isGcmRegistered(context)) {
+          Log.w(TAG, "Not GCM registered!");
           return;
         }
 
@@ -46,7 +46,7 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
         IncomingEncryptedPushMessage encryptedMessage = new IncomingEncryptedPushMessage(data, sessionKey);
         IncomingPushMessage          message          = encryptedMessage.getIncomingPushMessage();
 
-        if (!isActiveNumber(context, message.getSource())) {
+        if (!org.thoughtcrime.securesms.util.Util.isActiveNumber(context, message.getSource())) {
           Directory directory           = Directory.getInstance(context);
           ContactTokenDetails contactTokenDetails = new ContactTokenDetails();
           contactTokenDetails.setNumber(message.getSource());
@@ -66,15 +66,5 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
     }
   }
 
-  private boolean isActiveNumber(Context context, String e164number) {
-    boolean isActiveNumber;
 
-    try {
-      isActiveNumber = Directory.getInstance(context).isActiveNumber(e164number);
-    } catch (NotInDirectoryException e) {
-      isActiveNumber = false;
-    }
-
-    return isActiveNumber;
-  }
 }
